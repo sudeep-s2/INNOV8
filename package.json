@@ -1,8 +1,11 @@
 {
   "name": "info2impact",
   "private": true,
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
-    "build": "npm --prefix frontend run build",
-    "dev": "npm --prefix frontend run dev"
+    "build": "cd frontend && npm run build",
+    "dev": "cd frontend && npm run dev"
   }
 }
