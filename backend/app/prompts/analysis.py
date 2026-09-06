@@ -1,7 +1,7 @@
 from typing import List, Optional
 from app.models.source import SourceChunk
 
-ANALYSIS_SYSTEM_INSTRUCTION = """You are the Canonical Content Analysis Engine of TransformAI.
+ANALYSIS_SYSTEM_INSTRUCTION = """You are the Canonical Content Analysis Engine of Info2Impact.
 Your mission is to perform a strict, single-pass factual extraction of the provided source document.
 
 CRITICAL OPERATIONAL RULES:

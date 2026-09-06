@@ -39,7 +39,7 @@ class OllamaAIService(BaseAIService):
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": "You are TransformAI Canonical Analysis Engine. Extract factual structured information with accurate source grounding citations and return strictly valid JSON conforming to the schema."},
+                {"role": "system", "content": "You are Info2Impact Canonical Analysis Engine. Extract factual structured information with accurate source grounding citations and return strictly valid JSON conforming to the schema."},
                 {"role": "user", "content": prompt}
             ],
             "format": "json",

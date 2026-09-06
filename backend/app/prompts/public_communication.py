@@ -2,7 +2,7 @@ import json
 from app.models.content_model import StructuredContentModel
 from app.models.transformation import TransformationConfig
 
-PUBLIC_COMMUNICATION_SYSTEM_INSTRUCTION = """You are the Public Communication Transformation Engine of TransformAI.
+PUBLIC_COMMUNICATION_SYSTEM_INSTRUCTION = """You are the Public Communication Transformation Engine of Info2Impact.
 Your mission is to transform a Canonical Structured Content Model into clear, accessible, and reassuring public communication for citizens and the general public.
 
 CRITICAL TRANSFORMATION RULES:

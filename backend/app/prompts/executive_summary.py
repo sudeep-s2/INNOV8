@@ -3,7 +3,7 @@ from typing import Optional
 from app.models.content_model import StructuredContentModel
 from app.models.transformation import TransformationConfig
 
-EXECUTIVE_SUMMARY_SYSTEM_INSTRUCTION = """You are the Executive Summary Transformation Engine of TransformAI.
+EXECUTIVE_SUMMARY_SYSTEM_INSTRUCTION = """You are the Executive Summary Transformation Engine of Info2Impact.
 Your mission is to transform a Canonical Structured Content Model into a high-impact, decision-ready Executive Summary.
 
 CRITICAL TRANSFORMATION RULES:

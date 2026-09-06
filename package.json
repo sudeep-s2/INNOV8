@@ -1,0 +1,8 @@
+{
+  "name": "info2impact",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "dev": "npm --prefix frontend run dev"
+  }
+}

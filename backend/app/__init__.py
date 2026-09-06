@@ -1,1 +1,1 @@
-# TransformAI App Package
+# Info2Impact App Package

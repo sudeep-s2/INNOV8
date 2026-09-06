@@ -12,5 +12,5 @@ async def health_check():
     """Returns basic service status to verify backend availability."""
     return HealthResponse(
         status="ok",
-        service="transformai"
+        service="info2impact"
     )

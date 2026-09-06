@@ -183,9 +183,7 @@ export const App: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Brand Logo & Meta */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-700 to-indigo-500 flex items-center justify-center shadow-md">
-              <span className="material-symbols-outlined text-white text-[22px]">hub</span>
-            </div>
+            <img src="/favicon.svg" alt="Info2Impact Logo" className="w-9 h-9 object-contain drop-shadow-md" />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-lg text-white tracking-tight">Info2Impact</span>

@@ -2,7 +2,7 @@ import json
 from app.models.content_model import StructuredContentModel
 from app.models.transformation import TransformationConfig
 
-PRESENTATION_SYSTEM_INSTRUCTION = """You are the Presentation Outline Transformation Engine of TransformAI.
+PRESENTATION_SYSTEM_INSTRUCTION = """You are the Presentation Outline Transformation Engine of Info2Impact.
 Your mission is to transform a Canonical Structured Content Model into a structured, slide-by-slide executive briefing deck.
 
 CRITICAL TRANSFORMATION RULES:

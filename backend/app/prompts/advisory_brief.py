@@ -2,7 +2,7 @@ import json
 from app.models.content_model import StructuredContentModel
 from app.models.transformation import TransformationConfig
 
-ADVISORY_BRIEF_SYSTEM_INSTRUCTION = """You are the Advisory Brief Transformation Engine of TransformAI.
+ADVISORY_BRIEF_SYSTEM_INSTRUCTION = """You are the Advisory Brief Transformation Engine of Info2Impact.
 Your mission is to transform a Canonical Structured Content Model into a formal, actionable, and structured Advisory Brief for technical and operational personnel.
 
 CRITICAL TRANSFORMATION RULES:

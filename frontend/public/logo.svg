@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 52" fill="none">
+  <defs>
+    <linearGradient id="logo-prism" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="logo-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Logo Mark -->
+  <g transform="translate(4, 2)">
+    <rect x="0" y="0" width="48" height="48" rx="10" fill="#141c29" stroke="#26364a" stroke-width="1.5"/>
+    <path d="M8 17H16M8 24H13M8 31H16" stroke="#64748B" stroke-width="2" stroke-linecap="round"/>
+    <polygon points="24,11 32,24 24,37 16,24" fill="url(#logo-prism)" stroke="#60A5FA" stroke-width="1.5"/>
+    <polygon points="24,17 28,24 24,31 20,24" fill="#FFFFFF" fill-opacity="0.95"/>
+    <path d="M28 17L38 13" stroke="#60A5FA" stroke-width="2" stroke-linecap="round"/>
+    <path d="M32 24H40" stroke="url(#logo-accent)" stroke-width="2" stroke-linecap="round"/>
+    <path d="M28 31L38 35" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="38" cy="13" r="1.8" fill="#60A5FA"/>
+    <circle cx="40" cy="24" r="2" fill="#34D399"/>
+    <circle cx="38" cy="35" r="1.8" fill="#38BDF8"/>
+  </g>
+
+  <!-- Typography -->
+  <text x="62" y="32" font-family="'Hanken Grotesk', system-ui, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">
+    Info<tspan fill="#3B82F6">2</tspan>Impact
+  </text>
+  <text x="63" y="44" font-family="'JetBrains Mono', monospace" font-size="8.5" font-weight="600" fill="#8D98B0" letter-spacing="1.2">
+    SOVEREIGN GENAI PLATFORM
+  </text>
+</svg>

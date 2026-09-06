@@ -23,7 +23,7 @@ from app.validators.output_validator import OutputValidator
 logger = logging.getLogger(__name__)
 
 class AIService:
-    """Centralized AI Service layer for TransformAI.
+    """Centralized AI Service layer for Info2Impact.
     Orchestrates:
     1. Single-pass content analysis -> StructuredContentModel (JSON)
     2. Multi-artefact transformations from the shared model

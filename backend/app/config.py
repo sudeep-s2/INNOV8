@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 class Settings:
-    PROJECT_NAME: str = "TransformAI"
+    PROJECT_NAME: str = "Info2Impact"
     PROJECT_SLOGAN: str = "Gen AI Platform for Automated Content Transformation"
     ORGANIZATION: str = "National Technical Research Organisation (NTRO)"
     VERSION: str = "0.2.0-milestone2"

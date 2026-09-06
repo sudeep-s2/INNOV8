@@ -2,7 +2,7 @@ import json
 from typing import Dict, Any, List
 from app.models.schemas import TransformationConfig, StructuredContentModel, SourceChunk
 
-SYSTEM_BASE_INSTRUCTION = """You are TransformAI, an enterprise-grade AI content transformation platform designed for the National Technical Research Organisation (NTRO).
+SYSTEM_BASE_INSTRUCTION = """You are Info2Impact, an enterprise-grade AI content transformation platform designed for the National Technical Research Organisation (NTRO).
 Your core mission is: ONE SOURCE -> STRUCTURED UNDERSTANDING -> MULTIPLE PURPOSE-SPECIFIC TRANSFORMATIONS.
 
 CRITICAL RULES:

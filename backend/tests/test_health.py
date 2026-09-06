@@ -13,12 +13,12 @@ def test_health_response_structure():
     response = client.get("/api/health")
     data = response.json()
     assert data["status"] == "ok"
-    assert data["service"] == "transformai"
+    assert data["service"] == "info2impact"
 
 def test_root_endpoint():
     """Verify root GET / returns basic metadata."""
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["service"] == "TransformAI"
+    assert data["service"] == "Info2Impact"
     assert data["health"] == "/api/health"
