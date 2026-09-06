@@ -18,13 +18,18 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware for local frontend connectivity
+# CORS middleware supporting local development, Vercel frontend, and HTTPS tunnels
+cors_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+is_wildcard = "*" in cors_origins or not cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins if not is_wildcard else [],
+    allow_origin_regex=r"https?://.*" if is_wildcard else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Mount API router

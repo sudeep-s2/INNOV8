@@ -1,9 +1,24 @@
+# Info2Impact - Backend Requirements
+# Smart India Hackathon 2026 | Problem Statement: SIH26154
+
+# Web API Framework & ASGI Server
 fastapi>=0.115.0
 uvicorn>=0.30.0
+python-multipart>=0.0.9
+
+# Data Validation & Modeling
 pydantic>=2.8.0
+
+# Environment Configuration
 python-dotenv>=1.0.0
+
+# Async HTTP Client (Local Ollama Communication)
+httpx>=0.27.0
+
+# Document & Presentation Processing
+pypdf>=5.0.0
+python-pptx>=1.0.0
+
+# Test Suite & Async Fixtures
 pytest>=8.0.0
 pytest-asyncio>=1.0.0
-httpx>=0.27.0
-pypdf>=5.0.0
-python-multipart>=0.0.9
