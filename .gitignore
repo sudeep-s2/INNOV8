@@ -50,8 +50,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Environments
+# Environments (do NOT commit local environment secrets)
 .env
+.env.local
+.env.*.local
 .venv
 env/
 venv/
@@ -70,6 +72,9 @@ pnpm-debug.log*
 lerna-debug.log*
 .eslintcache
 *.local
+
+# Vercel deployment artifacts
+.vercel/
 
 # IDEs & Editors
 .vscode/

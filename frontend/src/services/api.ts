@@ -7,7 +7,9 @@ import type {
   MultiTransformResponse
 } from '../types';
 
-const API_BASE = '/api';
+// Supports external backend URL in production (e.g. VITE_API_URL=https://api.example.com)
+// Defaults to '/api' for local Vite proxy
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '') + '/api';
 
 export async function checkHealth(): Promise<HealthResponse> {
   const response = await fetch(`${API_BASE}/health`);
