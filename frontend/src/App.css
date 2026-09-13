@@ -302,3 +302,26 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.875rem;
   color: #fbbf24;
 }
+
+/* Responsive Utilities */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .command-card {
+    border-radius: 0.75rem;
+  }
+  .toggle-tab {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+  }
+  .btn-command {
+    font-size: 0.875rem;
+  }
+}
+

@@ -147,7 +147,7 @@ async def test_ollama_service_rejects_empty_source():
 
 # API Endpoint Tests
 def test_api_analyze_endpoint_success():
-    """Test POST /api/ai/analyze returns 200 and validated StructuredContentModel."""
+    """Test POST /api/ai/analyze returns 200 and dispatches background job."""
     mock_resp = create_mock_httpx_response(200, {
         "message": {"content": json.dumps(SAMPLE_VALID_JSON)}
     })
@@ -160,8 +160,17 @@ def test_api_analyze_endpoint_success():
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["topic"] == "Power Grid Cyber Intrusion"
-        assert len(data["key_facts"]) == 1
+        assert "job_id" in data
+        assert data["status"] == "processing"
+
+        # Also verify sync fallback if requested
+        sync_response = client.post(
+            "/api/ai/analyze?sync=true",
+            json={"source_text": "Sample valid intelligence briefing source text with more than 10 characters."}
+        )
+        assert sync_response.status_code == 200
+        assert sync_response.json()["topic"] == "Power Grid Cyber Intrusion"
+        assert len(sync_response.json()["key_facts"]) == 1
 
 def test_api_analyze_endpoint_empty_input_validation():
     """Test POST /api/ai/analyze returns 400 or 422 for text shorter than min_length constraint."""
@@ -169,11 +178,11 @@ def test_api_analyze_endpoint_empty_input_validation():
     assert response.status_code in [400, 422]
 
 def test_api_analyze_endpoint_connection_error_handling():
-    """Test POST /api/ai/analyze returns HTTP 503 when Ollama server is unreachable."""
+    """Test POST /api/ai/analyze returns HTTP 503 when sync is used and Ollama server is unreachable."""
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.side_effect = httpx.ConnectError("Connection refused")
         response = client.post(
-            "/api/ai/analyze",
+            "/api/ai/analyze?sync=true",
             json={"source_text": "Sample text for testing offline Ollama service response."}
         )
         assert response.status_code == 503

@@ -189,6 +189,10 @@ def test_api_canonical_analyze_with_source_text():
         )
         assert response.status_code == 200
         data = response.json()
+        if "job_id" in data:
+            status_resp = client.get(f"/api/ai/analyze/status/{data['job_id']}")
+            assert status_resp.status_code == 200
+            data = status_resp.json()
         assert data["topic"] == "Power Grid Incident"
         assert len(data["source_chunks"]) >= 1
         assert data["key_facts"][0]["source_chunk_ids"] == ["chunk_1"]
@@ -212,6 +216,10 @@ def test_api_canonical_analyze_with_pre_ingested_chunks():
         )
         assert response.status_code == 200
         data = response.json()
+        if "job_id" in data:
+            status_resp = client.get(f"/api/ai/analyze/status/{data['job_id']}")
+            assert status_resp.status_code == 200
+            data = status_resp.json()
         assert data["topic"] == "Pre-chunked Source Analysis"
         assert len(data["source_chunks"]) == 3
         assert data["key_facts"][0]["source_chunk_ids"] == ["chunk_2"]

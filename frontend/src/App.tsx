@@ -177,26 +177,28 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0c1421] text-[#dbe2f5]">
+    <div className="min-h-screen flex flex-col bg-[#0c1421] text-[#dbe2f5] w-full max-w-full overflow-x-hidden">
       {/* Top Glass Institutional Header */}
-      <header className="glass-header sticky top-0 z-50 w-full px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <header className="glass-header sticky top-0 z-50 w-full px-3 sm:px-6 py-2.5 sm:py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 flex-wrap md:flex-nowrap">
           {/* Brand Logo & Meta */}
-          <div className="flex items-center gap-3 shrink-0">
-            <img src="/favicon.svg" alt="Info2Impact Logo" className="w-9 h-9 object-contain drop-shadow-md" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-white tracking-tight">Info2Impact</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            <img src="/favicon.svg" alt="Info2Impact Logo" className="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-md shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-bold text-base sm:text-lg text-white tracking-tight">Info2Impact</span>
+                <span className="text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase shrink-0">
                   SIH26154 · NTRO
                 </span>
               </div>
-              <span className="text-xs text-[#8d98b0] -mt-0.5">Automated Content Transformation Platform</span>
+              <span className="text-[11px] sm:text-xs text-[#8d98b0] -mt-0.5 truncate max-w-[170px] sm:max-w-none">
+                Automated Content Transformation Platform
+              </span>
             </div>
           </div>
 
-          {/* Stepper Navigation */}
-          <nav className="hidden md:flex items-center stepper-nav">
+          {/* Stepper Navigation (Desktop / Tablet >= md) */}
+          <nav className="hidden md:flex items-center stepper-nav shrink-0">
             <button
               type="button"
               className={`step-item ${currentStage === 1 ? 'active' : ''} ${structuredModel ? 'completed' : ''}`}
@@ -257,9 +259,9 @@ export const App: React.FC = () => {
           </nav>
 
           {/* Right Status Badge */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+              className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium border ${
                 healthStatus === 'connected'
                   ? 'bg-emerald-950/40 text-emerald-400 border-emerald-700/40'
                   : healthStatus === 'disconnected'
@@ -268,7 +270,7 @@ export const App: React.FC = () => {
               }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   healthStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'
                 }`}
               ></span>
@@ -279,7 +281,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={handleResetAll}
-                className="text-xs px-2.5 py-1 rounded bg-[#222a38] hover:bg-[#2d3543] text-[#8d98b0] hover:text-white transition-colors"
+                className="text-xs px-2 sm:px-2.5 py-1 rounded bg-[#222a38] hover:bg-[#2d3543] text-[#8d98b0] hover:text-white transition-colors min-h-[30px]"
                 title="Start a new document transformation"
               >
                 Reset
@@ -287,10 +289,42 @@ export const App: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Adaptive Mobile Stepper (visible on mobile / tablet < md) */}
+        <div className="flex md:hidden items-center justify-between border-t border-[#26364a]/50 mt-2 pt-2 max-w-7xl mx-auto overflow-x-auto scrollbar-none gap-1 px-0.5">
+          {[
+            { stage: 1 as WorkflowStage, label: 'Source', unlocked: true, completed: !!structuredModel },
+            { stage: 2 as WorkflowStage, label: 'Understand', unlocked: !!structuredModel, completed: !!structuredModel },
+            { stage: 3 as WorkflowStage, label: 'Configure', unlocked: !!structuredModel, completed: !!transformResults },
+            { stage: 4 as WorkflowStage, label: 'Generate', unlocked: isTransforming, completed: !!transformResults },
+            { stage: 5 as WorkflowStage, label: 'Review', unlocked: !!transformResults, completed: !!transformResults },
+          ].map((s) => (
+            <button
+              key={s.stage}
+              type="button"
+              disabled={!s.unlocked}
+              onClick={() => s.unlocked && setCurrentStage(s.stage)}
+              className={`flex items-center gap-1 py-1 px-2 rounded text-[11px] font-medium transition-all whitespace-nowrap ${
+                currentStage === s.stage
+                  ? 'bg-[#222a38] text-white font-semibold shadow-sm'
+                  : s.unlocked
+                  ? 'text-[#8d98b0] hover:text-[#dbe2f5]'
+                  : 'text-[#434e62] cursor-not-allowed opacity-50'
+              }`}
+            >
+              <span className={`w-3.5 h-3.5 rounded-full text-[9px] flex items-center justify-center font-bold ${
+                currentStage === s.stage ? 'bg-blue-600 text-white' : s.completed ? 'bg-emerald-600 text-white' : 'bg-[#2d3543] text-[#8d98b0]'
+              }`}>
+                {s.completed ? '✓' : s.stage}
+              </span>
+              <span>{s.label}</span>
+            </button>
+          ))}
+        </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8 flex flex-col gap-6 sm:gap-8 min-w-0">
         
         {/* ======================================================== */}
         {/* STAGE 1: SOURCE INGESTION */}
@@ -310,16 +344,16 @@ export const App: React.FC = () => {
               </p>
             </div>
 
-            <div className="command-card p-6 sm:p-8 flex flex-col gap-6">
+            <div className="command-card p-4 sm:p-6 md:p-8 flex flex-col gap-5 sm:gap-6">
               <div className="glow-orb-primary -top-24 -right-24"></div>
               <div className="glow-orb-secondary -bottom-24 -left-24"></div>
 
               {/* Mode Toggle Header */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#26364a] pb-4">
-                <div className="inline-flex p-1 rounded-lg bg-[#141c29] border border-[#26364a]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#26364a] pb-4">
+                <div className="inline-flex p-1 rounded-lg bg-[#141c29] border border-[#26364a] max-w-full overflow-x-auto scrollbar-none">
                   <button
                     type="button"
-                    className={`toggle-tab ${inputMode === 'paste' ? 'active' : ''}`}
+                    className={`toggle-tab whitespace-nowrap ${inputMode === 'paste' ? 'active' : ''}`}
                     onClick={() => setInputMode('paste')}
                   >
                     <span className="flex items-center gap-1.5">
@@ -329,7 +363,7 @@ export const App: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className={`toggle-tab ${inputMode === 'upload' ? 'active' : ''}`}
+                    className={`toggle-tab whitespace-nowrap ${inputMode === 'upload' ? 'active' : ''}`}
                     onClick={() => setInputMode('upload')}
                   >
                     <span className="flex items-center gap-1.5">
@@ -342,7 +376,7 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleLoadSample}
-                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 self-start sm:self-auto py-1"
                 >
                   <span className="material-symbols-outlined text-[16px]">download_for_offline</span>
                   Load Sample NTRO SCADA Incident
@@ -354,33 +388,33 @@ export const App: React.FC = () => {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs text-[#8d98b0] font-mono">
                     <span className="uppercase tracking-wider">Source Content Buffer</span>
-                    <span>{sourceText.length} characters · ~{sourceText.split(/\s+/).filter(Boolean).length} words</span>
+                    <span>{sourceText.length} chars · ~{sourceText.split(/\s+/).filter(Boolean).length} words</span>
                   </div>
                   <textarea
-                    rows={9}
-                    className="w-full bg-[#141c29] text-[#dbe2f5] p-4 rounded-lg border border-[#26364a] focus:border-blue-500 focus:outline-none font-mono text-sm leading-relaxed transition-colors shadow-inner"
+                    rows={8}
+                    className="w-full bg-[#141c29] text-[#dbe2f5] p-3 sm:p-4 rounded-lg border border-[#26364a] focus:border-blue-500 focus:outline-none font-mono text-xs sm:text-sm leading-relaxed transition-colors shadow-inner resize-y min-h-[160px]"
                     placeholder="Paste briefing report, cyber incident dossier, or policy document excerpt here..."
                     value={sourceText}
                     onChange={(e) => setSourceText(e.target.value)}
                   />
                   <span className="text-xs text-[#64748b] flex items-center gap-1 mt-1">
-                    <span className="material-symbols-outlined text-[15px] text-blue-400">info</span>
-                    Markdown headers, technical identifiers (CVEs, IPs), and numbered clauses will be preserved with exact offsets.
+                    <span className="material-symbols-outlined text-[15px] text-blue-400 shrink-0">info</span>
+                    <span>Markdown headers, technical identifiers (CVEs, IPs), and clauses preserved with exact offsets.</span>
                   </span>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
-                  <div className="relative rounded-xl border-2 border-dashed border-[#26364a] hover:border-blue-500/60 bg-[#141c29] p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer">
+                  <div className="relative rounded-xl border-2 border-dashed border-[#26364a] hover:border-blue-500/60 bg-[#141c29] p-5 sm:p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer">
                     <input
                       type="file"
                       accept=".txt,.pdf"
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                     />
-                    <div className="w-14 h-14 rounded-xl bg-[#18202d] border border-[#26364a] flex items-center justify-center text-blue-400 mb-3 shadow-md">
-                      <span className="material-symbols-outlined text-[30px]">cloud_upload</span>
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#18202d] border border-[#26364a] flex items-center justify-center text-blue-400 mb-3 shadow-md">
+                      <span className="material-symbols-outlined text-[26px] sm:text-[30px]">cloud_upload</span>
                     </div>
-                    <span className="text-white font-medium text-base">
+                    <span className="text-white font-medium text-sm sm:text-base break-words max-w-full">
                       {selectedFile ? selectedFile.name : 'Drag & drop document here, or click to browse'}
                     </span>
                     <span className="text-xs text-[#8d98b0] mt-1">
@@ -389,18 +423,18 @@ export const App: React.FC = () => {
                   </div>
 
                   {selectedFile && (
-                    <div className="command-card-high p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-red-400 text-[26px]">picture_as_pdf</span>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-white">{selectedFile.name}</span>
+                    <div className="command-card-high p-3 sm:p-4 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <span className="material-symbols-outlined text-red-400 text-[24px] sm:text-[26px] shrink-0">picture_as_pdf</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-white truncate">{selectedFile.name}</span>
                           <span className="text-xs text-[#8d98b0]">{(selectedFile.size / 1024).toFixed(1)} KB · Ready for token chunking</span>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => setSelectedFile(null)}
-                        className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded bg-[#18202d]"
+                        className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1 rounded bg-[#18202d] shrink-0 min-h-[30px]"
                       >
                         Remove
                       </button>
@@ -410,30 +444,30 @@ export const App: React.FC = () => {
               )}
 
               {analysisError && (
-                <div className="p-4 rounded-lg bg-red-950/40 border border-red-700/50 text-red-300 text-sm flex items-start gap-2">
+                <div className="p-3.5 sm:p-4 rounded-lg bg-red-950/40 border border-red-700/50 text-red-300 text-sm flex items-start gap-2">
                   <span className="material-symbols-outlined text-[18px] text-red-400 shrink-0 mt-0.5">error</span>
-                  <div>
+                  <div className="break-words min-w-0">
                     <strong>Analysis Failed:</strong> {analysisError}
                   </div>
                 </div>
               )}
 
               {/* Action Trigger */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-2">
                 <div className="flex items-center gap-2 text-xs text-[#8d98b0]">
-                  <span className="material-symbols-outlined text-[16px] text-emerald-400">verified_user</span>
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400 shrink-0">verified_user</span>
                   <span>Zero-Cloud Retention · Local Ollama Qwen3:8B Enclave</span>
                 </div>
 
                 <button
                   type="button"
-                  className="btn-command btn-primary-command w-full sm:w-auto"
+                  className="btn-command btn-primary-command w-full sm:w-auto min-h-[44px]"
                   onClick={handleAnalyze}
                   disabled={isAnalyzing || (inputMode === 'paste' && !sourceText.trim()) || (inputMode === 'upload' && !selectedFile)}
                 >
                   {isAnalyzing ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0"></span>
                       <span>Deconstructing Factual Model...</span>
                     </>
                   ) : (
@@ -452,9 +486,9 @@ export const App: React.FC = () => {
         {/* STAGE 2: UNDERSTAND (CANONICAL MODEL & INSPECTOR) */}
         {/* ======================================================== */}
         {currentStage === 2 && structuredModel && (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5 sm:gap-6 min-w-0 w-full">
             {/* Header Status Bar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
               <div>
                 <div className="flex items-center gap-2 text-blue-400 font-mono text-xs uppercase tracking-wider mb-1">
                   <span>Stage 2 of 5</span>
@@ -464,14 +498,14 @@ export const App: React.FC = () => {
                 <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                   Canonical Structured Understanding
                 </h2>
-                <p className="text-sm text-[#8d98b0]">
+                <p className="text-xs sm:text-sm text-[#8d98b0]">
                   Source deconstructed into structured facts, metrics, risks, and recommendations with verified chunk provenance.
                 </p>
               </div>
 
               <button
                 type="button"
-                className="btn-command btn-primary-command self-start sm:self-auto shrink-0"
+                className="btn-command btn-primary-command w-full sm:w-auto shrink-0 min-h-[44px]"
                 onClick={() => setCurrentStage(3)}
               >
                 <span>Proceed to Configure</span>
@@ -480,8 +514,8 @@ export const App: React.FC = () => {
             </div>
 
             {/* Executive Synthesis Card */}
-            <div className="command-card p-6 border-blue-900/60 bg-[#121c2c]">
-              <div className="flex items-center justify-between mb-3">
+            <div className="command-card p-4 sm:p-6 border-blue-900/60 bg-[#121c2c]">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-2 text-blue-400 font-mono text-xs uppercase">
                   <span className="material-symbols-outlined text-[18px]">psychology</span>
                   <span>Primary Subject & Synthesis</span>
@@ -490,36 +524,36 @@ export const App: React.FC = () => {
                   Grounding Verified · 0 Hallucinations
                 </span>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">{structuredModel.topic}</h3>
-              <p className="text-sm text-[#c3cce0] leading-relaxed">{structuredModel.summary}</p>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2 break-words">{structuredModel.topic}</h3>
+              <p className="text-xs sm:text-sm text-[#c3cce0] leading-relaxed break-words">{structuredModel.summary}</p>
 
               {/* Quick Metrics Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#26364a]">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-4 pt-4 border-t border-[#26364a]">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-mono uppercase text-[#8d98b0]">Key Facts</span>
-                  <span className="text-lg font-bold text-white">{structuredModel.key_facts.length} Verified</span>
+                  <span className="text-[10px] sm:text-[11px] font-mono uppercase text-[#8d98b0]">Key Facts</span>
+                  <span className="text-base sm:text-lg font-bold text-white">{structuredModel.key_facts.length} Verified</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-mono uppercase text-[#8d98b0]">Metrics</span>
-                  <span className="text-lg font-bold text-emerald-400">{structuredModel.metrics.length} Extracted</span>
+                  <span className="text-[10px] sm:text-[11px] font-mono uppercase text-[#8d98b0]">Metrics</span>
+                  <span className="text-base sm:text-lg font-bold text-emerald-400">{structuredModel.metrics.length} Extracted</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-mono uppercase text-[#8d98b0]">Risks Identified</span>
-                  <span className="text-lg font-bold text-amber-400">{structuredModel.risks.length} Prioritized</span>
+                  <span className="text-[10px] sm:text-[11px] font-mono uppercase text-[#8d98b0]">Risks Identified</span>
+                  <span className="text-base sm:text-lg font-bold text-amber-400">{structuredModel.risks.length} Prioritized</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-mono uppercase text-[#8d98b0]">Source Chunks</span>
-                  <span className="text-lg font-bold text-blue-400">{structuredModel.source_chunks.length} Segmented</span>
+                  <span className="text-[10px] sm:text-[11px] font-mono uppercase text-[#8d98b0]">Source Chunks</span>
+                  <span className="text-base sm:text-lg font-bold text-blue-400">{structuredModel.source_chunks.length} Segmented</span>
                 </div>
               </div>
             </div>
 
             {/* Split Grid: Facts/Risks + Forensic Source Inspector */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start min-w-0">
               {/* Left 7 Columns: Extracted Model Components */}
-              <div className="lg:col-span-7 flex flex-col gap-5">
+              <div className="lg:col-span-7 flex flex-col gap-5 min-w-0 w-full">
                 {/* Verified Facts */}
-                <div className="command-card p-5">
+                <div className="command-card p-4 sm:p-5">
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                     <span className="material-symbols-outlined text-blue-400 text-[18px]">fact_check</span>
                     Extracted Facts with Provenance
@@ -530,9 +564,9 @@ export const App: React.FC = () => {
                         key={fact.fact_id}
                         className="p-3 rounded-lg bg-[#141c29] border border-[#26364a] hover:border-blue-500/40 transition-colors"
                       >
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
                           <span className="text-xs font-mono text-blue-300 font-bold">{fact.fact_id}</span>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 flex-wrap">
                             {fact.source_chunk_ids.map((cid) => (
                               <button
                                 key={cid}
@@ -546,7 +580,7 @@ export const App: React.FC = () => {
                             ))}
                           </div>
                         </div>
-                        <p className="text-xs text-[#dbe2f5]">{fact.statement}</p>
+                        <p className="text-xs text-[#dbe2f5] break-words">{fact.statement}</p>
                       </div>
                     ))}
                   </div>
@@ -561,7 +595,7 @@ export const App: React.FC = () => {
                     </h4>
                     <ul className="flex flex-col gap-2">
                       {structuredModel.risks.map((r, i) => (
-                        <li key={i} className="text-xs text-[#dbe2f5] bg-[#141c29] p-2.5 rounded border border-amber-900/30">
+                        <li key={i} className="text-xs text-[#dbe2f5] bg-[#141c29] p-2.5 rounded border border-amber-900/30 break-words">
                           <span className="font-semibold text-amber-300 block mb-0.5">{r.severity || 'Critical'} Severity</span>
                           {r.risk}
                         </li>
@@ -576,7 +610,7 @@ export const App: React.FC = () => {
                     </h4>
                     <ul className="flex flex-col gap-2">
                       {structuredModel.recommendations.map((rec, i) => (
-                        <li key={i} className="text-xs text-[#dbe2f5] bg-[#141c29] p-2.5 rounded border border-emerald-900/30">
+                        <li key={i} className="text-xs text-[#dbe2f5] bg-[#141c29] p-2.5 rounded border border-emerald-900/30 break-words">
                           <span className="font-semibold text-emerald-300 block mb-0.5">{rec.priority || 'Immediate'}</span>
                           {rec.action}
                         </li>
@@ -587,15 +621,15 @@ export const App: React.FC = () => {
               </div>
 
               {/* Right 5 Columns: Forensic Source Inspector */}
-              <div className="lg:col-span-5 sticky top-20">
-                <div className="command-card p-5 bg-[#141c29] border-blue-900/50">
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#26364a]">
+              <div className="lg:col-span-5 lg:sticky lg:top-20 min-w-0 w-full">
+                <div className="command-card p-4 sm:p-5 bg-[#141c29] border-blue-900/50">
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#26364a] gap-2">
                     <div className="flex items-center gap-2 text-blue-400 font-mono text-xs uppercase font-bold">
-                      <span className="material-symbols-outlined text-[18px]">find_in_page</span>
+                      <span className="material-symbols-outlined text-[18px] shrink-0">find_in_page</span>
                       <span>Forensic Source Inspector</span>
                     </div>
                     {activeInspectedChunk && (
-                      <span className="citation-pill-verified font-mono text-xs">
+                      <span className="citation-pill-verified font-mono text-xs shrink-0">
                         {activeInspectedChunk.chunk_id}
                       </span>
                     )}
@@ -608,11 +642,11 @@ export const App: React.FC = () => {
                         <span>Page {activeInspectedChunk.page_number || 1}</span>
                       </div>
 
-                      <div className="p-3.5 rounded bg-[#0c1421] border border-[#26364a] text-xs font-mono text-[#cbd5e1] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto">
+                      <div className="p-3 sm:p-3.5 rounded bg-[#0c1421] border border-[#26364a] text-xs font-mono text-[#cbd5e1] leading-relaxed whitespace-pre-wrap break-words max-h-72 overflow-y-auto w-full">
                         {activeInspectedChunk.text}
                       </div>
 
-                      <div className="p-2.5 rounded bg-[#18202d] border border-[#26364a] flex items-center justify-between text-[11px] font-mono text-[#8d98b0]">
+                      <div className="p-2.5 rounded bg-[#18202d] border border-[#26364a] flex items-center justify-between text-[11px] font-mono text-[#8d98b0] flex-wrap gap-1">
                         <span>Char Offsets: [{activeInspectedChunk.char_start ?? 0} - {activeInspectedChunk.char_end ?? activeInspectedChunk.text.length}]</span>
                         <span className="text-emerald-400 flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">check</span> Hash Grounded
@@ -628,7 +662,7 @@ export const App: React.FC = () => {
                   {/* All Chunks Selector */}
                   <div className="mt-4 pt-3 border-t border-[#26364a]">
                     <span className="text-[11px] font-mono uppercase text-[#8d98b0] block mb-2">Available Source Chunks:</span>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1.5 max-w-full">
                       {structuredModel.source_chunks.map((c) => (
                         <button
                           key={c.chunk_id}
@@ -664,13 +698,13 @@ export const App: React.FC = () => {
               </p>
             </div>
 
-            <div className="command-card p-6 sm:p-8 flex flex-col gap-6">
+            <div className="command-card p-4 sm:p-6 md:p-8 flex flex-col gap-5 sm:gap-6">
               {/* Sliders / Selectors */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase text-[#8d98b0]">Target Audience</label>
                   <select
-                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm"
+                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm min-h-[42px]"
                     value={config.audience}
                     onChange={(e) => setConfig({ ...config, audience: e.target.value as Audience })}
                   >
@@ -684,7 +718,7 @@ export const App: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase text-[#8d98b0]">Linguistic Tone</label>
                   <select
-                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm"
+                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm min-h-[42px]"
                     value={config.tone}
                     onChange={(e) => setConfig({ ...config, tone: e.target.value as Tone })}
                   >
@@ -698,7 +732,7 @@ export const App: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase text-[#8d98b0]">Detail Level</label>
                   <select
-                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm"
+                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm min-h-[42px]"
                     value={config.detail_level}
                     onChange={(e) => setConfig({ ...config, detail_level: e.target.value as DetailLevel })}
                   >
@@ -711,7 +745,7 @@ export const App: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase text-[#8d98b0]">Objective</label>
                   <select
-                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm"
+                    className="w-full bg-[#141c29] text-white p-2.5 rounded border border-[#26364a] focus:border-blue-500 text-sm min-h-[42px]"
                     value={config.objective}
                     onChange={(e) => setConfig({ ...config, objective: e.target.value as Objective })}
                   >
@@ -735,7 +769,7 @@ export const App: React.FC = () => {
                   ].map((item) => (
                     <label
                       key={item.id}
-                      className={`p-4 rounded-lg border transition-all cursor-pointer flex items-start gap-3 ${
+                      className={`p-3.5 sm:p-4 rounded-lg border transition-all cursor-pointer flex items-start gap-3 ${
                         selectedOutputs.includes(item.id as OutputType)
                           ? 'bg-[#1a2638] border-blue-500 shadow-sm'
                           : 'bg-[#141c29] border-[#26364a] hover:border-[#384a64]'
@@ -745,9 +779,9 @@ export const App: React.FC = () => {
                         type="checkbox"
                         checked={selectedOutputs.includes(item.id as OutputType)}
                         onChange={() => toggleOutputType(item.id as OutputType)}
-                        className="mt-1 accent-blue-600 rounded"
+                        className="mt-1 accent-blue-600 rounded shrink-0"
                       />
-                      <div className="flex flex-col">
+                      <div className="flex flex-col min-w-0">
                         <span className="text-sm font-bold text-white">{item.title}</span>
                         <span className="text-xs text-[#8d98b0] mt-0.5">{item.desc}</span>
                       </div>
@@ -757,17 +791,17 @@ export const App: React.FC = () => {
               </div>
 
               {transformError && (
-                <div className="p-4 rounded-lg bg-red-950/40 border border-red-700/50 text-red-300 text-sm">
+                <div className="p-3.5 sm:p-4 rounded-lg bg-red-950/40 border border-red-700/50 text-red-300 text-sm">
                   {transformError}
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setCurrentStage(2)}
-                  className="btn-command btn-secondary-command"
+                  className="btn-command btn-secondary-command w-full sm:w-auto min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                   Back to Understanding
@@ -777,7 +811,7 @@ export const App: React.FC = () => {
                   type="button"
                   onClick={handleTransform}
                   disabled={isTransforming || selectedOutputs.length === 0}
-                  className="btn-command btn-primary-command"
+                  className="btn-command btn-primary-command w-full sm:w-auto min-h-[44px]"
                 >
                   <span>Generate Selected Outputs ({selectedOutputs.length})</span>
                   <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
@@ -826,8 +860,8 @@ export const App: React.FC = () => {
         {/* STAGE 5: REVIEW & MULTI-ARTEFACT DISPLAY */}
         {/* ======================================================== */}
         {currentStage === 5 && transformResults && (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-5 sm:gap-6 min-w-0 w-full">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
               <div>
                 <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs uppercase tracking-wider mb-1">
                   <span className="material-symbols-outlined text-[15px]">verified</span>
@@ -836,16 +870,16 @@ export const App: React.FC = () => {
                 <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                   Generated Communication Artefacts
                 </h2>
-                <p className="text-sm text-[#8d98b0]">
+                <p className="text-xs sm:text-sm text-[#8d98b0]">
                   Grounded across {selectedOutputs.length} purpose-tailored formats from a single factual extraction.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setCurrentStage(3)}
-                  className="btn-command btn-secondary-command text-xs py-2 px-3"
+                  className="btn-command btn-secondary-command text-xs py-2 px-3 flex-1 sm:flex-initial min-h-[38px]"
                 >
                   <span className="material-symbols-outlined text-[16px]">tune</span>
                   Adjust Parameters
@@ -853,7 +887,7 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleResetAll}
-                  className="btn-command btn-primary-command text-xs py-2 px-3"
+                  className="btn-command btn-primary-command text-xs py-2 px-3 flex-1 sm:flex-initial min-h-[38px]"
                 >
                   <span className="material-symbols-outlined text-[16px]">add_circle</span>
                   New Ingestion
@@ -862,11 +896,11 @@ export const App: React.FC = () => {
             </div>
 
             {/* Artefacts Tab Bar */}
-            <div className="flex items-center gap-2 border-b border-[#26364a] overflow-x-auto pb-1">
+            <div className="flex items-center gap-2 border-b border-[#26364a] overflow-x-auto pb-2 scrollbar-none w-full max-w-full">
               {transformResults.executive_summary && (
                 <button
                   type="button"
-                  className={`toggle-tab text-sm ${activeOutputTab === 'executive_summary' ? 'active' : ''}`}
+                  className={`toggle-tab text-xs sm:text-sm shrink-0 whitespace-nowrap min-h-[36px] ${activeOutputTab === 'executive_summary' ? 'active' : ''}`}
                   onClick={() => setActiveOutputTab('executive_summary')}
                 >
                   📊 Executive Summary
@@ -875,7 +909,7 @@ export const App: React.FC = () => {
               {transformResults.advisory_brief && (
                 <button
                   type="button"
-                  className={`toggle-tab text-sm ${activeOutputTab === 'advisory_brief' ? 'active' : ''}`}
+                  className={`toggle-tab text-xs sm:text-sm shrink-0 whitespace-nowrap min-h-[36px] ${activeOutputTab === 'advisory_brief' ? 'active' : ''}`}
                   onClick={() => setActiveOutputTab('advisory_brief')}
                 >
                   🛡️ Advisory Brief
@@ -884,7 +918,7 @@ export const App: React.FC = () => {
               {transformResults.public_communication && (
                 <button
                   type="button"
-                  className={`toggle-tab text-sm ${activeOutputTab === 'public_communication' ? 'active' : ''}`}
+                  className={`toggle-tab text-xs sm:text-sm shrink-0 whitespace-nowrap min-h-[36px] ${activeOutputTab === 'public_communication' ? 'active' : ''}`}
                   onClick={() => setActiveOutputTab('public_communication')}
                 >
                   📢 Public Release
@@ -893,7 +927,7 @@ export const App: React.FC = () => {
               {transformResults.presentation && (
                 <button
                   type="button"
-                  className={`toggle-tab text-sm ${activeOutputTab === 'presentation' ? 'active' : ''}`}
+                  className={`toggle-tab text-xs sm:text-sm shrink-0 whitespace-nowrap min-h-[36px] ${activeOutputTab === 'presentation' ? 'active' : ''}`}
                   onClick={() => setActiveOutputTab('presentation')}
                 >
                   📑 Presentation Outline
@@ -902,9 +936,9 @@ export const App: React.FC = () => {
             </div>
 
             {/* Artefact Content Body */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start min-w-0 w-full">
               {/* Main Content Area (8 cols) */}
-              <div className="lg:col-span-8 flex flex-col gap-6">
+              <div className="lg:col-span-8 flex flex-col gap-5 sm:gap-6 min-w-0 w-full">
                 
                 {/* 1. Executive Summary Tab */}
                 {activeOutputTab === 'executive_summary' && transformResults.executive_summary && (
@@ -1072,8 +1106,8 @@ export const App: React.FC = () => {
               </div>
 
               {/* Right Column: Source Provenance & Citations Inspector (4 cols) */}
-              <div className="lg:col-span-4 sticky top-20">
-                <div className="command-card p-5 bg-[#141c29]">
+              <div className="lg:col-span-4 lg:sticky lg:top-20 min-w-0 w-full">
+                <div className="command-card p-4 sm:p-5 bg-[#141c29]">
                   <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#26364a]">
                     <div className="flex items-center gap-2 text-blue-400 font-mono text-xs uppercase font-bold">
                       <span className="material-symbols-outlined text-[18px]">verified</span>

@@ -135,17 +135,49 @@ test.describe('Info2Impact End-to-End Workflow & Integration Suite', () => {
     await expect(page.getByText('Key Strategic Findings')).toBeVisible();
   });
 
-  test('5. Responsive Viewport & Accessibility Check', async ({ page }) => {
-    // Test on Mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
+  test('5. Responsive Viewport & Multi-Device Verification', async ({ page }) => {
+    const targetViewports = [
+      { name: '1920x1080 Desktop', width: 1920, height: 1080, isMobile: false },
+      { name: '1366x768 Laptop', width: 1366, height: 768, isMobile: false },
+      { name: '1024x768 Tablet Landscape', width: 1024, height: 768, isMobile: false },
+      { name: '768x1024 Tablet Portrait', width: 768, height: 1024, isMobile: false },
+      { name: '390x844 Mobile (iPhone 14)', width: 390, height: 844, isMobile: true },
+      { name: '375x667 Mobile (iPhone SE/8)', width: 375, height: 667, isMobile: true },
+      { name: '320x568 Small Mobile (iPhone 5)', width: 320, height: 568, isMobile: true },
+    ];
 
-    await expect(page.getByText('Info2Impact', { exact: true })).toBeVisible();
-    await expect(page.locator('textarea')).toBeVisible();
+    for (const vp of targetViewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/');
 
-    // Test on Desktop viewport
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/');
-    await expect(page.locator('nav.stepper-nav')).toBeVisible();
+      // Check header branding visible
+      await expect(page.getByText('Info2Impact', { exact: true })).toBeVisible();
+
+      // Check textarea visible
+      const textarea = page.locator('textarea');
+      await expect(textarea).toBeVisible();
+
+      // Check stepper adaptations
+      if (!vp.isMobile) {
+        await expect(page.locator('nav.stepper-nav')).toBeVisible();
+      }
+
+      // Check that there is NO horizontal page overflow
+      const isOverflowing = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      });
+      expect(isOverflowing, `Horizontal overflow detected at ${vp.name} (${vp.width}x${vp.height})`).toBe(false);
+
+      // Verify controls are usable and not clipped
+      const sampleBtn = page.getByRole('button', { name: /Load Sample NTRO SCADA Incident/i });
+      await expect(sampleBtn).toBeVisible();
+      await sampleBtn.click();
+      await expect(textarea).toContainText('NATIONAL CRITICAL INFRASTRUCTURE DEFENCE');
+
+      const analyzeBtn = page.getByRole('button', { name: /Analyze & Extract Canonical Model/i });
+      await expect(analyzeBtn).toBeVisible();
+      await expect(analyzeBtn).toBeEnabled();
+    }
   });
 });
+

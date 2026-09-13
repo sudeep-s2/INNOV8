@@ -84,11 +84,30 @@ export async function uploadSourceFile(file: File): Promise<IngestResponse> {
   return response.json();
 }
 
-export async function analyzeSource(params: {
-  source_text?: string;
-  chunks?: SourceChunk[];
-}): Promise<StructuredContentModel> {
-  const response = await fetch(`${API_BASE}/ai/analyze`, {
+const POLL_INTERVAL_MS = 2500;
+const MAX_POLL_DURATION_MS = 15 * 60 * 1000; // 15 minutes for CPU inference
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export interface AnalysisJobStatusResponse {
+  job_id: string;
+  status: 'processing' | 'completed' | 'failed';
+  result?: StructuredContentModel;
+  error?: string;
+  [key: string]: any;
+}
+
+export async function analyzeSource(
+  params: {
+    source_text?: string;
+    chunks?: SourceChunk[];
+  },
+  onStatusUpdate?: (status: string) => void
+): Promise<StructuredContentModel> {
+  // Step 1: Dispatch the background analysis job
+  const initResponse = await fetch(`${API_BASE}/ai/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -96,11 +115,75 @@ export async function analyzeSource(params: {
     },
     body: JSON.stringify(params)
   });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `Canonical analysis failed (HTTP ${response.status})`);
+
+  if (!initResponse.ok) {
+    const errorData = await initResponse.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Canonical analysis initiation failed (HTTP ${initResponse.status})`);
   }
-  return response.json();
+
+  const initData = await initResponse.json();
+
+  // If server responded with direct StructuredContentModel (sync fallback)
+  if (initData.topic && initData.key_facts) {
+    return initData as StructuredContentModel;
+  }
+
+  const jobId = initData.job_id;
+  if (!jobId) {
+    throw new Error('Analysis service did not return a valid job identifier.');
+  }
+
+  onStatusUpdate?.('Processing analysis job...');
+
+  // Step 2: Poll status endpoint periodically
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < MAX_POLL_DURATION_MS) {
+    await sleep(POLL_INTERVAL_MS);
+
+    try {
+      const statusResponse = await fetch(`${API_BASE}/ai/analyze/status/${jobId}`, {
+        headers: {
+          ...TUNNEL_HEADERS
+        }
+      });
+
+      if (!statusResponse.ok) {
+        if (statusResponse.status === 404) {
+          throw new Error(`Analysis job ${jobId} not found.`);
+        }
+        console.warn(`Status polling received HTTP ${statusResponse.status}, retrying...`);
+        continue;
+      }
+
+      const statusData: AnalysisJobStatusResponse = await statusResponse.json();
+
+      if (statusData.status === 'completed') {
+        const canonicalModel = statusData.result || (statusData as unknown as StructuredContentModel);
+        if (!canonicalModel || !canonicalModel.topic) {
+          throw new Error('Analysis completed but did not return a valid StructuredContentModel.');
+        }
+        return canonicalModel;
+      }
+
+      if (statusData.status === 'failed') {
+        throw new Error(statusData.error || 'Canonical analysis failed during background processing.');
+      }
+
+      onStatusUpdate?.('Deconstructing factual model with local Qwen3:8B...');
+    } catch (pollErr: any) {
+      if (
+        pollErr.message &&
+        (pollErr.message.includes('Canonical analysis failed') ||
+          pollErr.message.includes('not found'))
+      ) {
+        throw pollErr;
+      }
+      console.warn('Transient polling error:', pollErr);
+    }
+  }
+
+  throw new Error('Analysis request timed out waiting for local Qwen3:8B inference to complete.');
 }
 
 export async function transformOutputs(
