@@ -141,11 +141,14 @@ export const App: React.FC = () => {
     setGenerationProgress('Orchestrating multi-output transformation via local Qwen3 8B...');
 
     try {
-      const response = await transformOutputs({
-        structured_model: structuredModel,
-        config: config,
-        output_types: selectedOutputs
-      });
+      const response = await transformOutputs(
+        {
+          structured_model: structuredModel,
+          config: config,
+          output_types: selectedOutputs
+        },
+        (msg) => setGenerationProgress(msg)
+      );
       setTransformResults(response);
       if (selectedOutputs.length > 0 && !selectedOutputs.includes(activeOutputTab)) {
         setActiveOutputTab(selectedOutputs[0]);

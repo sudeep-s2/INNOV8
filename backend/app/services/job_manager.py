@@ -39,7 +39,16 @@ class JobManager:
                 return None
             return dict(job)
 
-    def set_completed(self, job_id: str, result: StructuredContentModel) -> bool:
+    def set_progress(self, job_id: str, progress_message: str) -> bool:
+        now = time.time()
+        with self._lock:
+            if job_id not in self._jobs:
+                return False
+            self._jobs[job_id]["progress_message"] = progress_message
+            self._jobs[job_id]["updated_at"] = now
+            return True
+
+    def set_completed(self, job_id: str, result: Any) -> bool:
         now = time.time()
         with self._lock:
             if job_id not in self._jobs:

@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Any
 from app.models.content_model import StructuredContentModel
 from app.models.transformation import (
     TransformationConfig,
@@ -12,6 +12,8 @@ from app.services.transformations.public_communication import PublicCommunicatio
 from app.services.transformations.presentation import PresentationGenerator
 from app.services.ollama_service import OllamaAIService
 
+from app.services import get_ai_service
+
 logger = logging.getLogger(__name__)
 
 class TransformationOrchestrator:
@@ -19,13 +21,13 @@ class TransformationOrchestrator:
 
     def __init__(
         self,
-        ai_service: Optional[OllamaAIService] = None,
+        ai_service: Optional[Any] = None,
         exec_generator: Optional[ExecutiveSummaryGenerator] = None,
         advisory_generator: Optional[AdvisoryBriefGenerator] = None,
         public_comm_generator: Optional[PublicCommunicationGenerator] = None,
         presentation_generator: Optional[PresentationGenerator] = None
     ):
-        shared_ai = ai_service or OllamaAIService()
+        shared_ai = ai_service or get_ai_service()
         self.exec_generator = exec_generator or ExecutiveSummaryGenerator(ai_service=shared_ai)
         self.advisory_generator = advisory_generator or AdvisoryBriefGenerator(ai_service=shared_ai)
         self.public_comm_generator = public_comm_generator or PublicCommunicationGenerator(ai_service=shared_ai)

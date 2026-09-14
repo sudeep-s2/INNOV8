@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+import asyncio
+import logging
+from typing import Dict, Any
+from fastapi import APIRouter, HTTPException, status, Query
 from app.models.outputs import (
     ExecutiveSummary,
     AdvisoryBrief,
@@ -18,6 +21,7 @@ from app.services.transformations.advisory_brief import AdvisoryBriefGenerator
 from app.services.transformations.public_communication import PublicCommunicationGenerator
 from app.services.transformations.presentation import PresentationGenerator
 from app.services.transformations.orchestrator import TransformationOrchestrator
+from app.services.job_manager import get_job_manager, JobStatus
 from app.services.base import (
     OllamaConnectionError,
     OllamaTimeoutError,
@@ -26,6 +30,8 @@ from app.services.base import (
 )
 from app.validators.grounding import GroundingValidationError
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 exec_generator = ExecutiveSummaryGenerator()
 advisory_generator = AdvisoryBriefGenerator()
@@ -33,14 +39,35 @@ public_comm_generator = PublicCommunicationGenerator()
 presentation_generator = PresentationGenerator()
 orchestrator = TransformationOrchestrator()
 
+async def _run_transform_job(job_id: str, request: MultiTransformRequest):
+    """Background worker executing multi-output transformations."""
+    mgr = get_job_manager()
+    try:
+        logger.info(f"Starting background multi-transformation for job {job_id}")
+        response = await orchestrator.transform_multi(
+            structured_model=request.structured_model,
+            config=request.config,
+            output_types=request.output_types
+        )
+        mgr.set_completed(job_id, response)
+        logger.info(f"Successfully completed multi-transformation for job {job_id}")
+    except Exception as e:
+        logger.exception(f"Job {job_id} failed during multi-transformation: {e}")
+        mgr.set_failed(job_id, f"Transformation orchestration failed: {str(e)}")
+
 @router.post(
     "",
-    response_model=MultiTransformResponse,
     summary="Multi-Output Orchestration Transformation",
     status_code=status.HTTP_200_OK
 )
-async def transform_multi_endpoint(request: MultiTransformRequest):
-    """Transforms a single canonical StructuredContentModel into multiple purpose-specific artefacts."""
+async def transform_multi_endpoint(
+    request: MultiTransformRequest,
+    sync: bool = Query(False, description="Run synchronously if True (default False for async job pattern)")
+):
+    """
+    Transforms a single canonical StructuredContentModel into multiple purpose-specific artefacts.
+    By default, executes asynchronously via background jobs to prevent Cloudflare tunnel timeouts.
+    """
     if not request.structured_model or not request.structured_model.topic:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -53,18 +80,73 @@ async def transform_multi_endpoint(request: MultiTransformRequest):
             detail="At least one output_type must be selected."
         )
 
-    try:
-        response = await orchestrator.transform_multi(
-            structured_model=request.structured_model,
-            config=request.config,
-            output_types=request.output_types
-        )
-        return response
-    except Exception as e:
+    if sync:
+        try:
+            response = await orchestrator.transform_multi(
+                structured_model=request.structured_model,
+                config=request.config,
+                output_types=request.output_types
+            )
+            return response
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"An unexpected error occurred during multi-transformation: {str(e)}"
+            )
+
+    mgr = get_job_manager()
+    job_id = mgr.create_job()
+    asyncio.create_task(_run_transform_job(job_id, request))
+
+    return {
+        "job_id": job_id,
+        "status": JobStatus.PROCESSING
+    }
+
+@router.get(
+    "/status/{job_id}",
+    summary="Query status of an asynchronous transformation job",
+    status_code=status.HTTP_200_OK,
+)
+async def get_transform_status_endpoint(job_id: str):
+    """
+    Returns the current execution status of a transformation job:
+    - while running: { "job_id": job_id, "status": "processing" }
+    - when failed: { "job_id": job_id, "status": "failed", "error": "..." }
+    - when complete: { "job_id": job_id, "status": "completed", "result": {...}, ... }
+    """
+    mgr = get_job_manager()
+    job = mgr.get_job(job_id)
+    if not job:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred during multi-transformation: {str(e)}"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Transformation job '{job_id}' not found or expired."
         )
+
+    job_status = job["status"]
+
+    if job_status == JobStatus.PROCESSING:
+        return {
+            "job_id": job_id,
+            "status": JobStatus.PROCESSING
+        }
+
+    if job_status == JobStatus.FAILED:
+        return {
+            "job_id": job_id,
+            "status": JobStatus.FAILED,
+            "error": job.get("error", "Unknown error occurred during transformation.")
+        }
+
+    resp = job["result"]
+    resp_dict = resp.model_dump() if hasattr(resp, "model_dump") else dict(resp)
+    response_payload = {
+        "job_id": job_id,
+        "status": JobStatus.COMPLETED,
+        "result": resp_dict
+    }
+    response_payload.update(resp_dict)
+    return response_payload
 
 @router.post(
     "/executive-summary",

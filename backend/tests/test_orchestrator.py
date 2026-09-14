@@ -216,7 +216,7 @@ async def test_orchestrator_partial_failure_handling():
     assert "Connection timeout" in result.errors[OutputType.advisory_brief.value]
 
 # 2. API Endpoint Tests (POST /api/transform)
-def test_api_multi_transform_endpoint_success():
+def test_api_multi_transform_endpoint_sync_success():
     with patch("app.api.routes.transform.orchestrator.transform_multi", new_callable=AsyncMock) as mock_multi:
         mock_multi.return_value = MultiTransformResponse(
             topic=SAMPLE_STRUCTURED_MODEL.topic,
@@ -233,7 +233,7 @@ def test_api_multi_transform_endpoint_success():
             "output_types": ["executive_summary", "advisory_brief"]
         }
 
-        response = client.post("/api/transform", json=payload)
+        response = client.post("/api/transform?sync=true", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["topic"] == SAMPLE_STRUCTURED_MODEL.topic
@@ -241,6 +241,43 @@ def test_api_multi_transform_endpoint_success():
         assert data["advisory_brief"]["title"] == "Advisory Brief"
         assert data["public_communication"] is None
         assert data["presentation"] is None
+
+@pytest.mark.asyncio
+async def test_api_multi_transform_endpoint_async_job():
+    with patch("app.api.routes.transform.orchestrator.transform_multi", new_callable=AsyncMock) as mock_multi:
+        mock_multi.return_value = MultiTransformResponse(
+            topic=SAMPLE_STRUCTURED_MODEL.topic,
+            executive_summary=MOCK_EXEC,
+            advisory_brief=MOCK_ADVISORY
+        )
+
+        payload = {
+            "structured_model": SAMPLE_STRUCTURED_MODEL.model_dump(),
+            "config": {
+                "audience": "executive",
+                "tone": "formal"
+            },
+            "output_types": ["executive_summary", "advisory_brief"]
+        }
+
+        # 1. Dispatch job
+        response = client.post("/api/transform", json=payload)
+        assert response.status_code == 200
+        init_data = response.json()
+        assert "job_id" in init_data
+        assert init_data["status"] == "processing"
+        job_id = init_data["job_id"]
+
+        import asyncio
+        await asyncio.sleep(0.05)
+
+        # 2. Poll status
+        status_resp = client.get(f"/api/transform/status/{job_id}")
+        assert status_resp.status_code == 200
+        status_data = status_resp.json()
+        assert status_data["status"] == "completed"
+        assert status_data["topic"] == SAMPLE_STRUCTURED_MODEL.topic
+        assert status_data["executive_summary"]["title"] == "Executive Summary"
 
 def test_api_multi_transform_rejects_empty_output_types():
     payload = {
@@ -254,3 +291,4 @@ def test_api_multi_transform_rejects_empty_output_types():
 def test_api_multi_transform_rejects_missing_model():
     response = client.post("/api/transform", json={"output_types": ["executive_summary"]})
     assert response.status_code == 422
+

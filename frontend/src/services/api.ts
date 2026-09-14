@@ -186,10 +186,20 @@ export async function analyzeSource(
   throw new Error('Analysis request timed out waiting for local Qwen3:8B inference to complete.');
 }
 
+export interface TransformJobStatusResponse {
+  job_id: string;
+  status: 'processing' | 'completed' | 'failed';
+  result?: MultiTransformResponse;
+  error?: string;
+  [key: string]: any;
+}
+
 export async function transformOutputs(
-  request: MultiTransformRequest
+  request: MultiTransformRequest,
+  onStatusUpdate?: (status: string) => void
 ): Promise<MultiTransformResponse> {
-  const response = await fetch(`${API_BASE}/transform`, {
+  // Step 1: Dispatch asynchronous transformation job
+  const initResponse = await fetch(`${API_BASE}/transform`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -197,9 +207,80 @@ export async function transformOutputs(
     },
     body: JSON.stringify(request)
   });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `Transformation orchestration failed (HTTP ${response.status})`);
+
+  if (!initResponse.ok) {
+    const errorData = await initResponse.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Transformation initiation failed (HTTP ${initResponse.status})`);
   }
-  return response.json();
+
+  const initData = await initResponse.json();
+
+  // If server responded synchronously (sync fallback or test environment)
+  if (initData.topic && (initData.executive_summary !== undefined || initData.advisory_brief !== undefined)) {
+    return initData as MultiTransformResponse;
+  }
+
+  const jobId = initData.job_id;
+  if (!jobId) {
+    throw new Error('Transformation service did not return a valid job identifier.');
+  }
+
+  onStatusUpdate?.('Dispatching deliverables to AI synthesis engine...');
+
+  // Step 2: Poll status endpoint periodically
+  const startTime = Date.now();
+  let pollCount = 0;
+
+  while (Date.now() - startTime < MAX_POLL_DURATION_MS) {
+    await sleep(POLL_INTERVAL_MS);
+    pollCount++;
+
+    try {
+      const statusResponse = await fetch(`${API_BASE}/transform/status/${jobId}`, {
+        headers: {
+          ...TUNNEL_HEADERS
+        }
+      });
+
+      if (!statusResponse.ok) {
+        if (statusResponse.status === 404) {
+          throw new Error(`Transformation job ${jobId} not found.`);
+        }
+        console.warn(`Transform status polling HTTP ${statusResponse.status}, retrying...`);
+        continue;
+      }
+
+      const statusData: TransformJobStatusResponse = await statusResponse.json();
+
+      if (statusData.status === 'completed') {
+        const responseData = statusData.result || (statusData as unknown as MultiTransformResponse);
+        if (!responseData || !responseData.topic) {
+          throw new Error('Transformation completed but did not return valid output payloads.');
+        }
+        return responseData;
+      }
+
+      if (statusData.status === 'failed') {
+        throw new Error(statusData.error || 'Transformation failed during background processing.');
+      }
+
+      if (pollCount % 4 === 0) {
+        onStatusUpdate?.('Synthesizing structured deliverables with source grounding verification...');
+      } else if (pollCount % 2 === 0) {
+        onStatusUpdate?.('Generating audience-adapted content artefacts...');
+      }
+    } catch (pollErr: any) {
+      if (
+        pollErr.message &&
+        (pollErr.message.includes('Transformation failed') ||
+          pollErr.message.includes('not found'))
+      ) {
+        throw pollErr;
+      }
+      console.warn('Transient transform polling error:', pollErr);
+    }
+  }
+
+  throw new Error('Transformation request timed out waiting for AI synthesis to complete.');
 }
+
